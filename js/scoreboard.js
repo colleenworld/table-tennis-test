@@ -8,14 +8,20 @@ app.filter('Winners', function () {
 
         for (let i = 0; i < items.length; i++) {
             let item = items[i]
-            if (item.score_1 > item.score_2) filtered.push({name: item.player_1, points: 2})
-            else filtered.push({name: item.player_2, points: 2})
+            if (item.score_1 > item.score_2) {
+                filtered.push({name: item.player_1, points: 2})
+                filtered.push({name: item.player_2, points: 0})
+            }
+            else {
+                filtered.push({name: item.player_2, points: 2})
+                filtered.push({name: item.player_1, points: 0})
+            }
         }
         filtered.sort((a, b) => (a.name > b.name) ? 1 : -1)
         for (let i = 0; i < filtered.length; i++) {
             if (result[k] && result[k].name === filtered[i].name) {
                 if (filtered[i].name === 'Steve (CEO)') result[k].points = 0
-                else result[k].points +=2
+                else result[k].points += filtered[i].points
             }
             else {
                 result.push(filtered[i])
