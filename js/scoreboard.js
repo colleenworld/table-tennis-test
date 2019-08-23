@@ -1,6 +1,35 @@
-var app = angular.module("scoreboard", []);
+var app = angular.module("scoreboard", [])
 
-app.controller("scoreboardController", ['$scope', function($scope) {
+app.filter('Winners', function () {
+    return function (items) {
+        var result = []
+        var k = -1
+        var filtered = []
+
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i]
+            if (item.score_1 > item.score_2) filtered.push({name: item.player_1, points: 2})
+            else filtered.push({name: item.player_2, points: 2})
+        }
+        filtered.sort((a, b) => (a.name > b.name) ? 1 : -1)
+        for (let i = 0; i < filtered.length; i++) {
+            if (result[k] && result[k].name === filtered[i].name) {
+                if (filtered[i].name === 'Steve (CEO)') result[k].points = 0
+                else result[k].points +=2
+            }
+            else {
+                result.push(filtered[i])
+                k++
+            }
+        }
+        result.sort((a, b) => (a.points < b.points) ? 1 : -1)
+        return result
+    }
+})
+
+app.controller("scoreboardController", ['$scope', '$filter',
+
+function($scope, $filter) {
 
     $scope.players = [
         { id: 1, name: "Justin" },
@@ -15,7 +44,7 @@ app.controller("scoreboardController", ['$scope', function($scope) {
         { id: 10, name: "Chris" },
         { id: 11, name: "Joe" },
         { id: 12, name: "Emma" }
-    ];
+    ]
 
     $scope.results = [
         { id: 1, player_1: "Justin", score_1: 11, player_2: "Steve (CEO)", score_2: 6},
@@ -28,14 +57,35 @@ app.controller("scoreboardController", ['$scope', function($scope) {
         { id: 8, player_1: "Justin", score_1: 11, player_2: "Liam", score_2: 3},
         { id: 9, player_1: "Tracey", score_1: 11, player_2: "Emma", score_2: 8},
         { id: 10, player_1: "Emma", score_1: 11, player_2: "Dan", score_2: 9}
-    ];
+    ]
 
-    $scope.league = [];
+    $scope.league = $filter('Winners')($scope.results)
 
     $scope.addResult = function(result) {
-        result.id = $scope.results.length + 1;
-        $scope.results.push(result);
-        $scope.result = {};
+        if ((result.score_1 < 11 && result.score_2 < 11) && (abs(result.score_1 - result.score_2) >= 2)) {
+        result.id = $scope.results.length + 1
+        $scope.results.push(result)
+        $scope.result = {}
+        }
+        else alert ("That doesn't look like a proper score. Check the rules again.")
     }
 
-}]);
+    $scope.addPlayer = function(player) {
+        if (($filter('filter')($scope.players, player)).length >= 1) {
+            alert("There is already a player called " + player + ". Try again")
+        }
+        else {
+            let id = $scope.largest($scope.players, 'id') + 1
+            $scope.players.push({ id: id, name: player })
+            alert("New player " + player + " added.")
+        }
+    }
+
+    $scope.largest = function(myArray, key) {
+        let maxId = myArray.reduce(
+            (max, item) => (item[key] > max ? item[key] : max), myArray[0].id)
+    }
+
+}])
+
+
